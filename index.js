@@ -29,7 +29,8 @@ app.post("/sign-up", (req, res) => {
 app.post("/tweets", (req, res) => {
 	//pegar o body e colocar no array tweet
 	console.log("REQUISICAO body", req.body);
-	tweet.push(req.body);
+	tweet.unshift(req.body);
+	/* tweet.push(req.body); */
 	res.send("OK, tweets salvos");
 });
 
@@ -61,7 +62,6 @@ app.get("/tweets", (req, res) => {
 			}
 		}) */
 	
-
 	let ultimosDezTweets = [];
 
 	for (let i = 0; i < 10; i++) {

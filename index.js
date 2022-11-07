@@ -10,7 +10,7 @@ const user = [{
 
 const tweet = [
 	{
-		username: "bobesponja",
+		username: "bobesponja", 
 		tweet: "eu amo o hub"
 	}];
 
@@ -19,19 +19,33 @@ app.use(express.json());
 app.use(cors());//acessa local host do arquivo html
 
 app.post("/sign-up", (req, res) => {
-	user.push(req.body);
-	console.log("sign up objeto", req.body);
-	console.log("*******************");
-	console.log(user);
-	res.send("OK");
+	if (req.body.username && req.body.avatar) {
+		user.push(req.body);
+		//console.log("sign up objeto", req.body);
+		//console.log("*******************");
+		//console.log(user);
+		/* res.status(201).send("OK, sign-up feito!"); */
+		res.send("OK");
+	} else {
+		res.status(400).send("Todos os campos são obrigatórios!");
+	}
 });
 
 app.post("/tweets", (req, res) => {
+	const user = req.headers.user; // com U minúsculo mesmo!
 	//pegar o body e colocar no array tweet
-	console.log("REQUISICAO body", req.body);
-	tweet.unshift(req.body);
-	/* tweet.push(req.body); */
-	res.send("OK, tweets salvos");
+	//console.log("REQUISICAO body", req.body);
+	if (req.body.tweet !== ""){
+		const objetoTweet = {
+			username: user,
+			tweet: req.body.tweet
+		}
+		tweet.unshift(objetoTweet);
+		/* tweet.push(req.body); */
+		res.status(201).send("OK, tweets salvos");
+	} else {
+		res.status(400).send("Todos os campos são obrigatórios!");
+	}
 });
 
 function findAvatar(username, user) {
@@ -49,22 +63,31 @@ function findAvatar(username, user) {
 }
 
 app.get("/tweets", (req, res) => {
+	const pageNumber = parseInt(req.query.page);
+	console.log("Valor de pageNumber interno", pageNumber);
+
+	//1:0-9; 2:10-19; 3: 20-29; 4: 30-39
+	const primeiroTweet = (pageNumber*10) - 10;
+	const ultimoTweet = (pageNumber*10) - 1;
+
+	console.log("primeiroTweet", primeiroTweet);
+	console.log("ultimoTweet", ultimoTweet);
 	//	let qtddTweets = tweet.length;
 	console.log("Olá eu sou o GET e vou printar os users: ", user);
 
-/* 	 	const ultimosDezTweets = tweet.filter((twt, i) => {
-			if (i < 10) {
-				return {
-					username: twt.username,
-					tweet: twt.tweet,
-					avatar: findAvatar(twt.username, user) 
-				};
-			}
-		}) */
-	
+	/* 	 	const ultimosDezTweets = tweet.filter((twt, i) => {
+				if (i < 10) {
+					return {
+						username: twt.username,
+						tweet: twt.tweet,
+						avatar: findAvatar(twt.username, user) 
+					};
+				}
+			}) */
+
 	let ultimosDezTweets = [];
 
-	for (let i = 0; i < 10; i++) {
+	for (let i = primeiroTweet; i <= ultimoTweet; i++) {
 		if (i < tweet.length) {
 			ultimosDezTweets.push(
 				{
@@ -74,13 +97,28 @@ app.get("/tweets", (req, res) => {
 				}
 			)
 		} else {
-			i = 10;
+			i = ultimoTweet;
 		}
-	} 
+	}
 
 	console.log("array com ultimos 10 tweets", ultimosDezTweets);
 	res.send(ultimosDezTweets);
 })
+
+
+
+
+app.get("/tweets/:username", (req, res) => {
+	const username_id = req.params.username;
+	//	let qtddTweets = tweet.length;
+	//console.log("Olá eu sou o GET e vou printar os users: ", user);
+
+	const userPosts = tweet.filter((tweet)=> tweet.username ===  username_id);
+	res.send(userPosts);
+})
+
+
+
 
 app.listen(5000, (e) => {
 	console.log("Conectou servidor!");
